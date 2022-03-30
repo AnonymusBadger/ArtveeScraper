@@ -9,11 +9,11 @@ import app
 
 import logging
 
-logging.basicConfig(
-    filename="log.txt",
-    format="%(levelname)s: %(message)s",
-    level=logging.DEBUG,
-)
+# logging.basicConfig(
+#     filename="log.txt",
+#     format="%(levelname)s: %(message)s",
+#     level=logging.DEBUG,
+# )
 
 
 class ArtworksSpider(scrapy.Spider):
@@ -136,7 +136,7 @@ def run(url, query):
     # process = CrawlerProcess(
     newDir = app.scraperConfig.newDirPath
     settings = {
-        "LOG_ENABLED": True,
+        "LOG_ENABLED": False,
         "LOG_FORMAT": "[%(name)s] %(levelname)s: %(message)s",
         "LOG_LEVEL": "WARNING",
         "BOT_NAME": "ArtveeScraper",
