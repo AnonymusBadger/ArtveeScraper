@@ -1,5 +1,4 @@
 import sys
-import easygui
 import requests
 from src.Text import decorate
 from src.UserInput import userInput
