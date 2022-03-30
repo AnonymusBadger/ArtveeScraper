@@ -1,8 +1,11 @@
 import scrapy
+from twisted.internet import reactor, task
 from src.Terminal import terminal
 from src.Text import decorate
 from src.ProgessBar import ProgresBar
-from src.scrapers.ArtveeScraper.ArtveeScraper.items import Artwork
+from ArtveeScraper.items import Artwork
+from scrapy.crawler import CrawlerRunner
+import app
 
 import logging
 
@@ -41,7 +44,10 @@ class ArtworksSpider(scrapy.Spider):
         for url in urls:
             self.pagesProgress.addToTarget()
 
-        yield from response.follow_all(urls, callback=self.parseSerachPage)
+        yield from response.follow_all(urls, callback=self.parseSerachPage, errback=self.errback)
+
+    def errback(self, respnse):
+        terminal.warning(f"Failed to parse: {respnse.url}")
 
     def parseSerachPage(self, response):
         urls = response.xpath(
@@ -53,7 +59,7 @@ class ArtworksSpider(scrapy.Spider):
 
         self.pagesProgress.increment()
 
-        yield from response.follow_all(urls, callback=self.parseArtworks)
+        yield from response.follow_all(urls, callback=self.parseArtworks, errback=self.errback)
 
     def parseArtworks(self, response):
         artworkRaw = response.xpath(
@@ -75,7 +81,6 @@ class ArtworksSpider(scrapy.Spider):
         }
 
         self.artworksProgress.increment()
-
         self.logger.debug(Artwork(data))
 
         yield Artwork(data)
@@ -109,11 +114,12 @@ class ArtworksSpider(scrapy.Spider):
 
         artist = artistRaw.xpath("./div/a/text()").get().strip()
 
-        artistYearCountry = artistRaw.xpath("./div/text()").get().split(",")
+        artistYearCountry = artistRaw.xpath("./div/text()").get()
         if artistYearCountry:
-            counrty = artistYearCountry[0].strip("(), ")
-            self.logger.debug(artistYearCountry[1])
-            year = artistYearCountry[1].strip("(), ")
+            yc = artistYearCountry.split(",")
+            counrty = yc[0].strip("(), ")
+            self.logger.debug(yc[1])
+            year = yc[1].strip("(), ")
         else:
             counrty = None
             year = None
@@ -124,3 +130,43 @@ class ArtworksSpider(scrapy.Spider):
             "artist_years": year,
             "artist_about": about,
         }
+
+
+def run(url, query):
+    # process = CrawlerProcess(
+    newDir = app.scraperConfig.newDirPath
+    settings = {
+        "LOG_ENABLED": True,
+        "LOG_FORMAT": "[%(name)s] %(levelname)s: %(message)s",
+        "LOG_LEVEL": "WARNING",
+        "BOT_NAME": "ArtveeScraper",
+        "SPIDER_MODULES": ["ArtveeScraper.spiders"],
+        "NEWSPIDER_MODULE": "ArtveeScraper.spiders",
+        "IMAGES_STORE": f"{newDir}/artworks",
+        "ROBOTSTXT_OBEY": True,
+        "ITEM_PIPELINES": {
+            "ArtveeScraper.pipelines.MyImagesPipeline": 300,
+        },
+        "IMAGES_URLS_FIELD": "image_url",
+        "FEEDS": {
+            f"{newDir}/data.csv": {
+                "format": "csv",
+                "encoding": "utf8",
+                "fields": [
+                    "artwork_title",
+                    "artwork_year",
+                    "artwork_url",
+                    "artist_name",
+                    "artist_country",
+                    "artist_years",
+                    "artist_about",
+                ],
+            }
+        },
+    }
+    runner = CrawlerRunner(settings)
+    runner.crawl(ArtworksSpider, start_urls=[url], query=query)
+    d = runner.join()
+    d.addBoth(lambda _: reactor.stop())
+
+    reactor.run()  # the script will block here until all crawling jobs are finished

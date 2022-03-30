@@ -1,52 +1,19 @@
-from twisted.internet import reactor, task
-from scrapy.crawler import CrawlerRunner
-from scrapy.utils.project import get_project_settings
-from src.scrapers.ArtveeScraper.ArtveeScraper.spiders.artwork_spider import (
-    ArtworksSpider,
-)
-from src.scrapers.ArtveeScraper.ArtveeScraper.pipelines import MyImagesPipeline
 import app
 import requests
+from time import sleep
+import subprocess
 import sys
 from src.Terminal import terminal
 from src.Text import decorate
 from bs4 import BeautifulSoup
 from src.UserInput import userInput
 from src.FileSystem import filesystem
+from ArtveeScraper.spiders.artwork_spider import run as runSpider
 
 
 class Run:
     def __init__(self):
         self.searchUrl = "https://artvee.com/s/?s="
-
-    def runSpider(self, url, query):
-        settings = get_project_settings()
-        settings.set(
-            "FEEDS",
-            {
-                f"{app.scraperConfig.newDirPath}/data.csv": {
-                    "format": "csv",
-                    "encoding": "utf8",
-                }
-            },
-        )
-        settings.set("IMAGES_STORAGE", f"{app.scraperConfig.newDirPath}/artworks")
-        settings.set("LOG_ENABLED", False)
-        settings.set("IMAGES_URLS_FIELD", "image_url")
-        # settings.set("SPIDER_MODULES", ["src.scrapers.ArtveeScraper.ArtveeScraper.spiders"])
-        # settings.set("NEWSPIDER_MODULE", "src.scrapers.ArtveeScraper.ArtveeScraper.spiders.",)
-        settings.set(
-            "ITEM_PIPELINES",
-            {
-                "src.scrapers.ArtveeScraper.ArtveeScraper.pipelines.MyImagesPipeline": 1,
-            },
-        )
-        runner = CrawlerRunner(settings)
-        runner.crawl(ArtworksSpider, start_urls=[url], query=query)
-        d = runner.join()
-        d.addBoth(lambda _: reactor.stop())
-
-        reactor.run()  # the script will block here until all crawling jobs are finished
 
     def run(self):
         terminal.printDecorator(True)
@@ -65,11 +32,12 @@ class Run:
                 self.setupDirs()
 
                 terminal.info("Starting scraping")
-                self.runSpider(targetUrl, query)
+                runSpider(targetUrl, query)
 
+                sleep(1)
                 terminal.info("Done")
                 terminal.printDecorator(True)
-                print()
+                subprocess.Popen(['notify-send', "Scrapper finished!"])
                 input("Press any key to exit ")
                 sys.exit()
 

@@ -1,6 +1,6 @@
 from src.Terminal import terminal
 from src.UserInput import userInput
-from src.scrapers.ArtveeScraper.ArtveeScraper.run import crawler
+from src.runScrapy import crawler
 
 import sys
 import app
