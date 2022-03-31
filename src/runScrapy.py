@@ -50,7 +50,9 @@ class Run:
         terminal.info("Done")
 
     def checkIfResults(self, url):
-        terminal.info("Checking if search has results")
+        terminal.clear()
+        terminal.printDecorator()
+        terminal.info("Checking if search has results", True)
         page = requests.get(url)
 
         if page.status_code != 200:

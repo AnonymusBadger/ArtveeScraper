@@ -101,13 +101,14 @@ class ScraperConfig:
             self.setNewDir(query)
 
     def setNewDir(self, dirName):
+        terminal.clear()
         terminal.printDecorator(True)
-        terminal.info("Creating save directry")
+        terminal.info("Generating save directry paths", True)
 
         newDirPath = f"{self.savePath}/{dirName}"
         exists = filesystem.exists(newDirPath)
         if exists:
-            terminal.warning(f"{decorate.bold('Path')}: { newDirPath }");
+            terminal.warning(f"Path: { decorate.bold(newDirPath) }");
             resp = userInput.query_yes_no(
                 "Alerady exists! Do you want to override?", "no"
             )
