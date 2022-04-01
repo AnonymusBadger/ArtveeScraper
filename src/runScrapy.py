@@ -37,7 +37,15 @@ class Run:
                 sleep(1)
                 terminal.info("Done")
                 terminal.printDecorator(True)
-                subprocess.Popen(['notify-send', "Scrapper finished!"])
+                if app.config.osType == "Darwin":
+                    CMD = '''
+                    on run argv
+  		      display notification (item 2 of argv) with title (item 1 of argv)
+		    end run
+	 	    '''
+                    subprocess.call(['osascript', '-e', CMD, "Artvee scraper", "Scrapper finished!"])
+                elif app.config.osType == "Linux":
+                    subprocess.Popen(['notify-send', "Scrapper finished!"])
                 input("Press any key to exit ")
                 sys.exit()
 
