@@ -6,6 +6,7 @@ from src.ProgessBar import ProgresBar
 from ArtveeScraper.items import Artwork
 from scrapy.crawler import CrawlerRunner
 import app
+import uuid
 
 import logging
 
@@ -78,6 +79,7 @@ class ArtworksSpider(scrapy.Spider):
             **artistData,
             "artwork_url": response.url,
             "image_url": imageURL,
+            "image_file_name": uuid.uuid1()
         }
 
         self.artworksProgress.increment()
@@ -164,6 +166,7 @@ def run(url, query):
                     "artist_country",
                     "artist_years",
                     "artist_about",
+                    "image_file_name"
                 ],
             }
         },

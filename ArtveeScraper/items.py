@@ -16,3 +16,4 @@ class Artwork(Item):
     artist_years = Field()
     artist_about = Field()
     image_url = Field()
+    image_file_name = Field()

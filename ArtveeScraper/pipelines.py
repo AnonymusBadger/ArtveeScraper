@@ -32,16 +32,13 @@ class MyImagesPipeline(ImagesPipeline):
     Image.MAX_IMAGE_PIXELS = None
 
     def process_item(self, item, spider):
-        # print(spider)
         return super().process_item(item, spider)
 
     def get_media_requests(self, item, info):
         yield Request(
             item["image_url"],
-            meta={"title": item["artwork_title"], "year": item["artwork_year"]},
+            meta={"file_name": item["image_file_name"]},
         )
 
     def file_path(self, request, response=None, info=None, *, item=None):
-        file_name = f"{request.meta.get('title')} {request.meta.get('year')}"
-        file_name = sanitizeFileName(file_name)
-        return f"{file_name}.jpg"
+        return f"{request.meta.get('file_name')}.jpg"
