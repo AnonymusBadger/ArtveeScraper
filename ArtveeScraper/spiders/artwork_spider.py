@@ -89,7 +89,11 @@ class ArtworksSpider(scrapy.Spider):
         title = self._stripTextInList(titleRaw)
         title = " ".join(title)
 
-        if title.find(")") != -1:
+        if title.count('(') > 1:
+          year = title[title.find(")") + 1 : -1].strip("( )")
+          title = title[0:title.find(")") + 1]
+
+        elif title.find(")") != -1:
             year = title[title.find("(") + 1 : title.find(")")]
             title = title[0 : title.find("(")].strip()
         else:
